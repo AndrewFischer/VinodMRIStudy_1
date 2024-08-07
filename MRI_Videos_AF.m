@@ -62,13 +62,13 @@ while trial < 1
     
     %moviename = sprintf('%s%s%s', 'C:/Users/3D_User/Documents/MATLAB/MRI_Study/Videos/', pname(1), '_10kph.mp4');
     %moviename = sprintf('%s%s%s', 'C:/Users/pss048/OneDrive - Bangor University/Documents/MATLAB/Copy_7_of_MRI_Study/Videos/', pname(1), '_10kph.mp4');
-    %af How about we use relative pathnames?  Hard codeing the path will break every
-    %time we move to a different computer. 
-    moviename = sprintf('%s%s%s', 'Videos/', pname(1), '_10kph.mp4');
+    %af Hard codeing the path will break every
+    %time we move to a different computer. This needs fixing.
+    moviename = sprintf('%s%s%s', '/Volumes/Odyssey/Work_GitHub/VinodMRIStudy_1/Videos/', pname(1), '_10kph.mp4');
 
    % AF I have no idea what the next 3 lines are for. Did he mean
    % disp(pname)
-   
+
    % disp(name);
    % disp(name);
    % disp(name);
@@ -86,6 +86,7 @@ while trial < 1
     
     Screen('Flip',window);
     
+    Screen('CloseAll')  % AF - temp debug. 
     import java.awt.Robot;
     mouse = Robot;
     mouse.mouseMove(0, 0);
