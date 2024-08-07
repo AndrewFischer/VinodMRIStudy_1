@@ -64,14 +64,11 @@ while trial < 1
     %moviename = sprintf('%s%s%s', 'C:/Users/pss048/OneDrive - Bangor University/Documents/MATLAB/Copy_7_of_MRI_Study/Videos/', pname(1), '_10kph.mp4');
     %af How about we use relative pathnames?  Hard codeing the path will break every
     %time we move to a different computer. 
-    moviename = sprintf('%s%s%s', 'Videos/', pname(1), '_10kph.mp4');
 
-   % AF I have no idea what the next 3 lines are for. Did he mean
-   % disp(pname)
-   
-   % disp(name);
-   % disp(name);
-   % disp(name);
+
+    disp(name);
+    disp(name);
+    disp(name);
 
     % Play movie
     PlayMoviesDemo(moviename , 0, 0, 0, 4, -1)
