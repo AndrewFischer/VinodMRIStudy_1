@@ -251,5 +251,4 @@ catch
   ShowCursor;
   psychrethrow(psychlasterror);
 end
-%WaitSecs(3);
 Screen('CloseAll');
