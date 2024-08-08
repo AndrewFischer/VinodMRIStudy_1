@@ -1,4 +1,4 @@
-
+%%MRI_Videos_AF()
 % Turn off warning sign!
 % AF note:  The next two lines are ok for development on my mac, but should not be left in.  
 % Production code should pass the timing tests. 
@@ -16,7 +16,8 @@ up = KbName('UpArrow');
 down = KbName('DownArrow');
 triggerKey = KbName('t');    % CurDes932 Scanner Trigger 
 
-deviceIndex932 = [];  %index of the CurDes932 interface box. Use [] for testing. 
+deviceIndex932 = [];  %index of the CurDes932 interface box.
+%%TBD consider using GetKeyboardIndices to identify the 932. 
 
 % *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
 
@@ -83,8 +84,9 @@ while trial < 1
     
     %moviename = sprintf('%s%s%s', 'C:/Users/3D_User/Documents/MATLAB/MRI_Study/Videos/', pname(1), '_10kph.mp4');
     %moviename = sprintf('%s%s%s', 'C:/Users/pss048/OneDrive - Bangor University/Documents/MATLAB/Copy_7_of_MRI_Study/Videos/', pname(1), '_10kph.mp4');
-    %af Hard codeing the path will break every
-    %time we move to a different computer. This needs fixing.
+    %af Hard coding the path breaks everytime we move to a different computer. 
+    %Hard coding to pwd is slightly better. 
+    videosDirectory  
     moviename = sprintf('%s%s%s', '/Volumes/Odyssey/Work_GitHub/VinodMRIStudy_1/Videos/', pname(1), '_10kph.mp4');
 
    % AF I have no idea what the next 3 lines are for. Did he mean

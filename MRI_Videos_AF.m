@@ -16,7 +16,8 @@ up = KbName('UpArrow');
 down = KbName('DownArrow');
 triggerKey = KbName('t');    % CurDes932 Scanner Trigger 
 
-deviceIndex932 = [];  %index of the CurDes932 interface box. Use [] for testing. 
+deviceIndex932 = [];  %index of the CurDes932 interface box.
+%%TBD consider using GetKeyboardIndices to identify the 932. 
 
 % *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
 
@@ -83,20 +84,19 @@ while trial < 1
     
     %moviename = sprintf('%s%s%s', 'C:/Users/3D_User/Documents/MATLAB/MRI_Study/Videos/', pname(1), '_10kph.mp4');
     %moviename = sprintf('%s%s%s', 'C:/Users/pss048/OneDrive - Bangor University/Documents/MATLAB/Copy_7_of_MRI_Study/Videos/', pname(1), '_10kph.mp4');
-    %af Hard codeing the path will break every
-    %time we move to a different computer. This needs fixing.
-    moviename = sprintf('%s%s%s', '/Volumes/Odyssey/Work_GitHub/VinodMRIStudy_1/Videos/', pname(1), '_10kph.mp4');
-
-   % AF I have no idea what the next 3 lines are for. Did he mean
-   % disp(pname)
-
-   % disp(name);
-   % disp(name);
-   % disp(name);
+    %af Hard coding the path breaks when we move to a new PC. 
+    %Hard coding to pwd is slightly better. 
+    videosDirectory = strcat(pwd,'/Videos/'); 
+    moviename = sprintf('%s%s%s', videosDirectory, pname(1), '_10kph.mp4');
 
     % Play movie
     PlayMoviesDemo(moviename , 0, 0, 0, 4, -1)
     
+%AF temporary - end here for testing. 
+Screen('CloseAll');
+return;
+
+
     [window, window_size] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
     
     I = imread('Borg.jpg');

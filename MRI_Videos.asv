@@ -1,3 +1,9 @@
+%%MRI_Videos()
+% AF note:  The next two lines are ok for development on my mac.
+% Production code should pass the timing tests. 
+Screen('Preference','VisualDebugLevel', 0);
+Screen('Preference', 'SkipSyncTests', 1)
+
 
 Speed = randperm(4);
 
@@ -12,50 +18,59 @@ for i = 1:4
 end
 
 
-% Turn off warning sign!
-Screen('Preference','VisualDebugLevel', 0);
+
 
 KbName('UnifyKeyNames');
 
 subject = input('Please enter a subject number ', 's');
 
 % ***** WRITE DATA HEADING TO EXCEL FILE *****
-writematrix(["Fixation "ClipStartTime" "ClipEndTime" "RPE" "RPE_EnterTime" "ButtonPressTime"],['Data/Subject' subject '.xls']);
+writematrix(["FixationStart" "ClipStartTime" "ClipEndTime" "RPE" "RPE_EnterTime" "ButtonPressTime"],['Data/Subject' subject '.xls']);
 
 % Setup key mapping:
 space = KbName('SPACE');
 esc = KbName('ESCAPE');
 up = KbName('UpArrow');
 down = KbName('DownArrow');
+triggerKey = KbName('t');    %Scanner Trigger 
+deviceIndex932 = []; %Consider using GetKeyboardIndices to identify the 932. 
+
+
 
 % *** SHOW START UP SCREEN AND WAIT FOR SPACEBAR TO BE PRESSED ***
 
-I = imread('startupScreen.bmp');
+try
+    I = imread('startupScreen.bmp');
 
-screen = max(Screen('Screens'));
+    screen = max(Screen('Screens'));
 
-[window, ~] = Screen('OpenWindow', screen, [0 0 0], [],32,2);
+    [window, ~] = Screen('OpenWindow', screen, [0 0 0], [],32,2);
 
-our_texture = Screen('MakeTexture', window, I);
+    our_texture = Screen('MakeTexture', window, I);
 
-Screen('DrawTexture', window, our_texture, [], []);
+    Screen('DrawTexture', window, our_texture, [], []);
         
-HideCursor;
+    HideCursor;
 
-Screen('Flip',window);
+    Screen('Flip',window);
 
-abortit = 0;
-[keyIsDown, ~, keyCode] = KbCheck(-1);
-while abortit == 0
-    [keyIsDown, ~, keyCode] = KbCheck(-1);
-    if (keyIsDown == 1 && keyCode(space))
-        abortit = 1;
-    end
+% Wait for the MRI Scanner trigger, a 't' keypress
+    keysOfInterest=zeros(1,256);
+    keysOfInterest(triggerKey)=1;
+    KbQueueCreate(deviceIndex932, keysOfInterest);
+    KbQueueStart(deviceIndex932);
+
+    timeSecs = KbQueueWait(deviceIndex932);
+
+    KbQueueRelease(deviceIndex932);
+catch
+  ListenChar(0);
+  psychrethrow(psychlasterror);
 end
 
 trial = 1;
 
-while trial < 2
+while trial < 5
  
     switch subject
         case {"1","7","13","19"}
