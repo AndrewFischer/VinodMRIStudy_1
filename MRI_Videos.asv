@@ -37,25 +37,20 @@ deviceIndex932 = []; %Consider using GetKeyboardIndices to identify the 932.
 
 
 
-% *** SHOW START UP SCREEN AND WAIT FOR SPACEBAR TO BE PRESSED ***
+% *** Show startup screen and wait for scanner trigger.  ***
 
 try
     I = imread('startupScreen.bmp');
-
     screen = max(Screen('Screens'));
-
     [window, ~] = Screen('OpenWindow', screen, [0 0 0], [],32,2);
-
     our_texture = Screen('MakeTexture', window, I);
-
     Screen('DrawTexture', window, our_texture, [], []);
-        
     HideCursor;
-
     Screen('Flip',window);
 
-% Wait for the MRI Scanner trigger, a 't' keypress
+% Wait for the MRI Scanner trigger, a 't' keypress. Spacebar also works. 
     keysOfInterest=zeros(1,256);
+    keysOfInterest(space) = 1;
     keysOfInterest(triggerKey)=1;
     KbQueueCreate(deviceIndex932, keysOfInterest);
     KbQueueStart(deviceIndex932);
@@ -65,85 +60,95 @@ try
     KbQueueRelease(deviceIndex932);
 catch
   ListenChar(0);
+  ShowCursor;
   psychrethrow(psychlasterror);
 end
 
-trial = 1;
 
-while trial < 5
+
+
+
+try
+
+    trial = 1;
+
+    while trial < 5
  
-    switch subject
-        case {"1","7","13","19"}
-            pname =["HPK" "KW" "LEOINE"];
-        case {"2","8","14","20"}
-            pname =["HPK" "LEOINE" "KW"];
-        case {"3","9","15","21"}
-            pname = ["KW" "HPK" "LEOINE"];
-        case {"4","10","16","22"}
-            pname = ["KW" "LEOINE" "HPK"];
-        case {"5","11","17","23"}
-            pname = ["LEOINE" "HPK" "KW"];
-        case {"6","12","18","24"}
-            pname = ["LEOINE" "KW" "HPK"];
-    end
+        switch subject
+            case {"1","7","13","19"}
+             pname =["HPK" "KW" "LEOINE"];
+            case {"2","8","14","20"}
+             pname =["HPK" "LEOINE" "KW"];
+            case {"3","9","15","21"}
+             pname = ["KW" "HPK" "LEOINE"];
+            case {"4","10","16","22"}
+             pname = ["KW" "LEOINE" "HPK"];
+            case {"5","11","17","23"}
+             pname = ["LEOINE" "HPK" "KW"];
+            case {"6","12","18","24"}
+             pname = ["LEOINE" "KW" "HPK"];
+        end
 
-    switch Speed(trial)
-        case {1}
-            speedname ='_8kph.mp4';
-        case {2}
-            speedname ='_10kph.mp4';
-        case {3}
-            speedname ='_12kph.mp4';
-        case {4}
-            speedname ='_14kph.mp4';
-    end
-    trial = trial + 1;
+        switch Speed(trial)
+            case {1}
+                speedname ='_8kph.mp4';
+            case {2}
+                speedname ='_10kph.mp4';
+            case {3}
+                speedname ='_12kph.mp4';
+            case {4}
+                speedname ='_14kph.mp4';
+        end
+        trial = trial + 1;
     
-    moviename = sprintf('%s%s%s', 'C:/Users/3D_User/Documents/MATLAB/MRI_Study/Videos/', pname(1), speedname);
-    
-    % Play video clip & return the start time of the video clip...
-    [M2] = PlayMoviesDemo(moviename , 0, 0, 0, 4, -1, subject);
-    
-    % Get the time the clip finished, then add it to the Excel output!
-    dt = datetime('now','TimeZone','local','Format','HH:mm:ss');
-    M2 = [M2 string(dt)];
+    %af Hard coding the path is not portable.
+    %moviename = sprintf('%s%s%s', 'C:/Users/3D_User/Documents/MATLAB/MRI_Study/Videos/', pname(1), speedname);
 
-    [window, window_size] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
+        videosDirectory = strcat(pwd,'/Videos/'); 
+        moviename = sprintf('%s%s%s',videosDirectory,pname(1),speedname);
+
     
-    I = imread('Borg.jpg');
+        % Play video clip & return the start time of the video clip...
+        [M2] = PlayMoviesDemo(moviename , 0, 0, 0, 4, -1, subject);
     
-    our_texture = Screen('MakeTexture', window, I);
+        % Get the time the clip finished, then add it to the Excel output!
+        dt = datetime('now','TimeZone','local','Format','HH:mm:ss');
+        M2 = [M2 string(dt)];
+
+        [window, window_size] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
     
-    Screen('DrawTexture', window, our_texture, [], []);
+        I = imread('Borg.jpg');
+        our_texture = Screen('MakeTexture', window, I);
+        Screen('DrawTexture', window, our_texture, [], []);
+        Screen('Flip',window);
     
-    Screen('Flip',window);
+ 
+        import java.awt.Robot;
+        mouse = Robot;
+        mouse.mouseMove(0, 0);
+        screenSize = get(0, 'screensize');
+        mouse.mouseMove(screenSize(3)/3,screenSize(4)/2 );
     
-    import java.awt.Robot;
-    mouse = Robot;
-    mouse.mouseMove(0, 0);
-    screenSize = get(0, 'screensize');
-    mouse.mouseMove(screenSize(3)/3,screenSize(4)/2 );
     
+        % SELECT VALUE FROM RPE SCALE
+        abortit = 0;
+        cursorVPosition = 1200/2; % Half way up the screen
     
-    % SELECT VALUE FROM RPE SCALE
-    abortit = 0;
-    cursorVPosition = 1200/2; % Half way up the screen
-    
-    [keyIsDown, ~, keyCode] = KbCheck(-1);
-    while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
-        if (keyIsDown == 1 && keyCode(space))
-            abortit = 1;
-        end
-        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < 1150))
-            cursorVPosition = cursorVPosition + 5;
-        end
-        if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 40))
-            cursorVPosition = cursorVPosition - 5;
-        end
+        while abortit == 0
+            [keyIsDown, ~, keyCode] = KbCheck(-1);
+            if (keyIsDown == 1 && keyCode(space))
+                abortit = 1;
+            end
+            if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < 1150))
+                cursorVPosition = cursorVPosition + 5;
+            end
+            if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 40))
+                cursorVPosition = cursorVPosition - 5;
+            end
     
         % Draw pointers to show selection...
-        rectangleStart = 73;
+            rectangleStart = 73;
         if ((cursorVPosition > 50) && (cursorVPosition < (1200 - 65)))
             rectangleHeight = 74;
             cursorVOffset = 60;
