@@ -1,4 +1,4 @@
-%%MRI_Videos_AF()
+
 % Turn off warning sign!
 % AF note:  The next two lines are ok for development on my mac, but should not be left in.  
 % Production code should pass the timing tests. 
