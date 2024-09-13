@@ -19,17 +19,34 @@ triggerKey = KbName('t');    % CurDes932 Scanner Trigger
 deviceIndex932 = [];  %index of the CurDes932 interface box.
 %%TBD consider using GetKeyboardIndices to identify the 932. 
 
-% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
 
+% Set the path to the "Videos" folder
+folderPath = fullfile(pwd, 'Videos');  % 'pwd' returns the current folder path
+
+% Code from Joe Butler to shuffle the videos:
+% Get the list of all .mp4 files in the "Videos" folder and shuffle them
+fileList = dir(fullfile(folderPath, '*.mp4'));
+
+% Extract the names and store them in a cell array
+videoFiles = {fileList.name};     
+
+% Shuffle the video files
+shuffledOrder = randperm(length(videoFiles));  
+
+% create new variable with shuffled videls
+shuffledVideos = videoFiles(shuffledOrder); 
+
+% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
+% Scanner trigger is 't' key.
 try
     I = imread('startupScreen.bmp');
 
 
     % *** [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
     [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
+    [w,h] = Screen('WindowSize',window)    %Get screen dimensions. Used later. 
 
     our_texture = Screen('MakeTexture', window, I);
-
     Screen('DrawTexture', window, our_texture, [], []);
         
     HideCursor;
@@ -50,55 +67,61 @@ catch
   psychrethrow(psychlasterror);
 end
 
+%trial look
+ for trial = 1:length(shuffledVideos) %this uses number of videos to define n trials
+    HideCursor;
+
+% Play movie
+
+% Get the full path of the video file using trial no from shuffled videos
+trialVideoFile = fullfile(folderPath, shuffledVideos{trial});
 
 
-%AF temporary - end here for testing. 
-Screen('CloseAll');
-return;
+% Open a screen window
+[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
 
+% this opens the stuff to play the movie.
+try
+    % Open the movie file
+    movie = Screen('OpenMovie', window, trialVideoFile);
 
+    % Start playing the movie
+    Screen('PlayMovie', movie, 1);
 
+    % Playback loop - I don't understand why they can interupt the movie
+    % with a button press?
+    while ~KbCheck  % Play until a key is pressed
+        % Get the next frame of the movie
+        tex = Screen('GetMovieImage', window, movie);
 
-
-trial = 0;
-
-while trial < 1
-    %pname =["HPK" "KW" "LEOINE"];
-
-    switch subject
-        case {"1","7","13","19"}
-            pname =["HPK" "KW" "LEOINE"];
-        case {"2","8","14","20"}
-            pname =["HPK" "LEOINE" "KW"];
-        case {"3","9","15","21"}
-            pname = ["KW" "HPK" "LEOINE"];
-        case {"4","10","16","22"}
-            pname = ["KW" "LEOINE" "HPK"];
-        case {"5","11","17","23"}
-            pname = ["LEOINE" "HPK" "KW"];
-        case {"6","12","18","24"}
-            pname = ["LEOINE" "KW" "HPK"];
+        % If the texture is a valid texture, draw it on the screen
+        if tex > 0
+            Screen('DrawTexture', window, tex);
+            Screen('Flip', window);
+            Screen('Close', tex);  % Release texture to save memory
+        else
+            break;  % Exit if there are no more frames
+        end
     end
 
-    trial = trial + 1;
-    
-    %moviename = sprintf('%s%s%s', 'C:/Users/3D_User/Documents/MATLAB/MRI_Study/Videos/', pname(1), '_10kph.mp4');
-    %moviename = sprintf('%s%s%s', 'C:/Users/pss048/OneDrive - Bangor University/Documents/MATLAB/Copy_7_of_MRI_Study/Videos/', pname(1), '_10kph.mp4');
-    %af Hard coding the path breaks when we move to a new PC. 
-    %Hard coding to pwd is slightly better. 
-    videosDirectory = strcat(pwd,'/Videos/'); 
-    moviename = sprintf('%s%s%s', videosDirectory, pname(1), '_10kph.mp4');
+    % Stop playing the movie
+    Screen('PlayMovie', movie, 0);
 
-    % Play movie
-    PlayMoviesDemo(moviename , 0, 0, 0, 4, -1)
-    
-%AF temporary - end here for testing. 
-Screen('CloseAll');
-return;
+    % Close the movie
+    Screen('CloseMovie', movie);
+
+catch exception
+    disp('Error occurred while playing the movie:');
+    disp(exception.message);
+end
+
+% Screen('CloseAll'); % added me
 
 
-    [window, window_size] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
-    
+% play movie end
+
+    HideCursor;
+
     I = imread('Borg.jpg');
     
     our_texture = Screen('MakeTexture', window, I);
@@ -107,7 +130,6 @@ return;
     
     Screen('Flip',window);
     
-   
     import java.awt.Robot;
     mouse = Robot;
     mouse.mouseMove(0, 0);
@@ -119,7 +141,7 @@ return;
     abortit = 0;
     cursorVPosition = 1200/2; % Half way up the screen
     
-    [keyIsDown, ~, keyCode] = KbCheck(-1);
+    [keyIsDown, ~, keyCode] = KbCheck(-1);   %AF  this will not work reliably in the scanner. 
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
         if (keyIsDown == 1 && keyCode(space))
@@ -134,7 +156,7 @@ return;
     
         % Draw pointers to show selection...
         rectangleStart = 73;
-        if ((cursorVPosition > 50) && (cursorVPosition < (1200 - 65)))
+        if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
             rectangleHeight = 74;
             cursorVOffset = 60;
             Screen('DrawTexture', window, our_texture, [], []);
@@ -168,9 +190,14 @@ return;
     cursorVPosition = 0;
     buttonDown = false;
     
-    while ((cursorVPosition == 0) || ((cursorVPosition > 450) && (cursorVPosition < 750)))
-        cursorVPosition = 100 + randi(1000); % Half way up the screen
+
+    % Put the cursor in the middel third of the screen but above or below the button. 
+    while ( (cursorVPosition == 0) || (cursorVPosition > ((h/2)-100)) && (cursorVPosition < ((h/2)+100)))
+        cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
     end
+
+
+
     
     [keyIsDown, ~, keyCode] = KbCheck(-1);
     while abortit == 0
@@ -178,22 +205,22 @@ return;
         if (keyIsDown == 1 && keyCode(space) && (buttonDown == true))
             abortit = 1;
         end
-        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < 1150))
+        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < h-50))
             cursorVPosition = cursorVPosition + 5;
         end
-        if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 40))
+        if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 50))
             cursorVPosition = cursorVPosition - 5;
         end
     
         % Draw pointers to show selection...
         rectangleStart = 73;
-        arrowHPosition = 950;
+        arrowHPosition = w/2;
     
-        if ((cursorVPosition > 50) && (cursorVPosition < (1200 - 65)))
+        if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
             rectangleHeight = 74;
             cursorVOffset = 60;
     
-            if (cursorVPosition > 535) && (cursorVPosition < 640)
+            if (cursorVPosition > (h/2 - 100) ) && (cursorVPosition < (h/2)+100 )
                 Screen('DrawTexture', window, button_down_texture, [], []); 
                 buttonDown = true;
             else
@@ -218,7 +245,9 @@ return;
         mouse.mouseMove(600, cursorVPosition);
     end
 
+
+   RPE_ratings(trial) = RPE;
+   trial = trial + 1; % increase trial number
 end
 
-%WaitSecs(3);
 Screen('CloseAll');
