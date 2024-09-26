@@ -21,9 +21,14 @@ greenButton = KbName('g');  % CurDes932 green button
 blueButton = KbName('b');
 yellowButton = KbName('y');
 
-deviceIndex932 = [];  %index of the CurDes932 interface box.
 %%TBD Use GetKeyboardIndices to identify the 932.  Otherwise we might get
 %%the wrong device. 
+%% On windows all keyboards appear as a single device.
+% if you port to linux use
+% [keyboardIndices, productNames, allInfos] = GetKeyboardIndices([productName][, serialNumber][, locationID])
+% to find and use the 932
+
+deviceIndex932 = [];  %index of the CurDes932 interface box.
 
 
 % Set the path to the "Videos" folder
