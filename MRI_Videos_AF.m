@@ -2,10 +2,11 @@
 % Turn off warning sign!
 % AF note:  The next two lines are ok for development on my mac, but should not be left in.  
 % Production code should pass the timing tests. 
+
 Screen('Preference','VisualDebugLevel', 0);
 Screen('Preference', 'SkipSyncTests', 1)
 
-KbName('UnifyKeyNames');
+KbName('UnifyKeyNames');    %This is for cross-platform compatibility. 
 
 subject = input('Please enter a subject number ', 's');
 
@@ -15,9 +16,14 @@ esc = KbName('ESCAPE');
 up = KbName('UpArrow');
 down = KbName('DownArrow');
 triggerKey = KbName('t');    % CurDes932 Scanner Trigger 
+redButton = KbName('r');    % CurDes932 red button
+greenButton = KbName('g');  % CurDes932 green button
+blueButton = KbName('b');
+yellowButton = KbName('y');
 
 deviceIndex932 = [];  %index of the CurDes932 interface box.
-%%TBD consider using GetKeyboardIndices to identify the 932. 
+%%TBD Use GetKeyboardIndices to identify the 932.  Otherwise we might get
+%%the wrong device. 
 
 
 % Set the path to the "Videos" folder
@@ -54,14 +60,18 @@ try
     Screen('Flip',window);
 
     % Wait for the MRI Scanner trigger, a 't' keypress
+    % See
+    % https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychDocumentation/KbQueue.html
+    % 
     keysOfInterest=zeros(1,256);
     keysOfInterest(triggerKey)=1;
+    keysOfInterest(space) = 1;
     KbQueueCreate(deviceIndex932, keysOfInterest);
     KbQueueStart(deviceIndex932);
 
-    timeSecs = KbQueueWait(deviceIndex932);
+    timeSecs = KbQueueWait(deviceIndex932); 
 
-    KbQueueRelease(deviceIndex932);
+    KbQueueRelease(deviceIndex932);   
 catch
   ListenChar(0);
   psychrethrow(psychlasterror);
@@ -115,7 +125,7 @@ catch exception
     disp(exception.message);
 end
 
-% Screen('CloseAll'); % added me
+
 
 
 % play movie end
@@ -129,30 +139,36 @@ end
     Screen('DrawTexture', window, our_texture, [], []);
     
     Screen('Flip',window);
+
+    % AF I'm not sure what the mouse robot was for.  
+    % Commenting out make no difference. 
+    %import java.awt.Robot;
+    %mouse = Robot;
+    %mouse.mouseMove(0, 0);
+    %screenSize = get(0, 'screensize');
+    %mouse.mouseMove(screenSize(3)/3,screenSize(4)/2 );
     
-    import java.awt.Robot;
-    mouse = Robot;
-    mouse.mouseMove(0, 0);
-    screenSize = get(0, 'screensize');
-    mouse.mouseMove(screenSize(3)/3,screenSize(4)/2 );
-    
-    
+        
+
     % SELECT VALUE FROM RPE SCALE
     abortit = 0;
-    cursorVPosition = 1200/2; % Half way up the screen
+    cursorVPosition = h/2; % Half way up the screen. AF use hight, not a fixed  number. 
     
-    [keyIsDown, ~, keyCode] = KbCheck(-1);   %AF  this will not work reliably in the scanner. 
+   % [keyIsDown, ~, keyCode] = KbCheck(-1);   %AF  this will not work reliably in the scanner.   We may occassionally miss a button press
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
         if (keyIsDown == 1 && keyCode(space))
             abortit = 1;
         end
-        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < 1150))
+        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < (h - 40)))
             cursorVPosition = cursorVPosition + 5;
         end
         if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 40))
             cursorVPosition = cursorVPosition - 5;
         end
+    
+
+
     
         % Draw pointers to show selection...
         rectangleStart = 73;
@@ -174,9 +190,11 @@ end
         else
             pause(0.001);
         end
-        mouse.mouseMove(600, cursorVPosition);
+        %mouse.mouseMove(600, cursorVPosition);
     end
     pause(1);
+    
+    KbQueueRelease();
     
     % SUBJECT MUST NOW CLICK A BUTTON
     
@@ -242,7 +260,7 @@ end
         else
             pause(0.001);
         end
-        mouse.mouseMove(600, cursorVPosition);
+        %mouse.mouseMove(600, cursorVPosition);
     end
 
 
