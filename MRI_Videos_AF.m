@@ -4,7 +4,7 @@
 % Production code should pass the timing tests. 
 
 Screen('Preference','VisualDebugLevel', 0);
-Screen('Preference', 'SkipSyncTests', 1)
+%Screen('Preference', 'SkipSyncTests', 1)
 
 KbName('UnifyKeyNames');    %This is for cross-platform compatibility. 
 
