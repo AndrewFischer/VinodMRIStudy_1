@@ -55,7 +55,7 @@ try
 
     % *** [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
     [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
-    [w,h] = Screen('WindowSize',window)    %Get screen dimensions. Used later. 
+    [w,h] = Screen('WindowSize',window);    %Get screen dimensions. Used later. 
 
     our_texture = Screen('MakeTexture', window, I);
     Screen('DrawTexture', window, our_texture, [], []);
