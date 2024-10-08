@@ -3,8 +3,8 @@
 % AF note:  The next two lines are ok for development on my mac, but should not be left in.  
 % Production code should pass the timing tests. 
 
-Screen('Preference','VisualDebugLevel', 0);
-%Screen('Preference', 'SkipSyncTests', 1)
+Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
+Screen('Preference', 'SkipSyncTests', 0);
 
 KbName('UnifyKeyNames');    %This is for cross-platform compatibility. 
 
