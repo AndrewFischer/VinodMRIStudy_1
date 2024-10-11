@@ -4,7 +4,7 @@
 % Turning warnings off is not acceptable for a real experiment. 
 
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
-Screen('Preference', 'SkipSyncTests', 0);
+%Screen('Preference', 'SkipSyncTests', 1);   %Turn off warnings so this will run on a mac. 
 
 KbName('UnifyKeyNames');    %This is for cross-platform compatibility. 
 
@@ -80,6 +80,7 @@ try
 catch
   ListenChar(0);
   psychrethrow(psychlasterror);
+  Screen('CloseAll');
 end
 
 %trial
@@ -273,4 +274,5 @@ end
    trial = trial + 1; % increase trial number
 end
 
+writematrix(RPE_ratings,"output.txt");
 Screen('CloseAll');
