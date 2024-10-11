@@ -258,11 +258,8 @@ end
             
             Screen('FillPoly', window ,[255 0 0], [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
     
-            HideCursor;
-    
-            Screen('Flip',window);
-    
-            RPE = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
+            HideCursor; 
+            Screen('Flip',window);  
         else
             pause(0.001);
         end
@@ -272,7 +269,9 @@ end
 
    RPE_ratings(trial) = RPE;
    trial = trial + 1; % increase trial number
-end
-
-writematrix(RPE_ratings,"output.txt");
+ end
 Screen('CloseAll');
+RPE_ratings(trial) = now;     %Append current time as double.
+
+theName = strcat("Ratings",subject,".csv");
+writematrix(RPE_ratings,theName,"WriteMode","append");
