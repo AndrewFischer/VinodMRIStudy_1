@@ -271,18 +271,12 @@ end
    RPE_ratings(trial) = RPE;
 
    %Each trial loop  ends on a 10 second rest block. 
-   try
-    our_texture = Screen('MakeTexture', window, fixationPointImg);
-    Screen('DrawTexture', window, our_texture, [], []) 
-    Screen('Flip',window);
-    WaitSecs(10);   %Use waitsecs, not pause. Pause can be interrupted. 
-   catch exception
-     disp('Error occurred in rest block');
-     disp(exception.message);   
-     ListenChar(0);
-     psychrethrow(psychlasterror);
-     Screen('CloseAll');
-   end
+
+   our_texture = Screen('MakeTexture', window, fixationPointImg);
+   Screen('DrawTexture', window, our_texture, [], []) 
+   Screen('Flip'window);
+   waitsecs(10);   %use waitsecs, not 
+    
    trial = trial + 1; % increase trial number
  end
 Screen('CloseAll');
