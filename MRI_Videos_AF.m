@@ -18,11 +18,12 @@ respTime = 0;   %Time spent in response blocks
 
 %The rest block is 10 seconds - respTime.
 
-%AF Reading the button images should never have been
-% inside the trial loop. Disk reads can be slow. 
+%AF Read in static images. 
 btn_up = imread('button_up.bmp');
 btn_down = imread('button_down2.bmp');
-
+borgImage = imread('Borg.jpg');
+% Pre-load the rest block fixation point.
+fixationPointImg = imread('fixation_cross.png','png');
 %% Response Device Setup
 
 KbName('UnifyKeyNames');    %This is for cross-platform compatibility. 
@@ -69,8 +70,7 @@ shuffledOrder = randperm(length(videoFiles));
 % create new variable with shuffled videls
 shuffledVideos = videoFiles(shuffledOrder); 
 
-% Pre-load the rest block fixation point.
-fixationPointImg = imread('fixation_cross.png','png');
+
 
 %% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
 % Scanner trigger is 't' key. Space works for testing. 
@@ -107,11 +107,18 @@ catch
   Screen('CloseAll');
 end
 
+Screen('Close',our_texture);   %AF Clean up startup screen. 
+
 %Use the window we already have open
 %This fixed a 'flashing' bug 
 %[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
  [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
 
+% Make the static textures. This should be outside of the trial loop. 
+button_up_texture = Screen('MakeTexture', window, btn_up);
+button_down_texture = Screen('MakeTexture', window,btn_down);
+fixation_texture = Screen('MakeTexture', window, fixationPointImg);
+borgTexture = Screen('MakeTexture', window, borgImage);
 
 %%Trial Loop    
  for trial = 1:length(shuffledVideos) %this uses number of videos to define n trials
@@ -168,24 +175,8 @@ end
 % play movie end
 
     HideCursor;
-
-    I = imread('Borg.jpg');
-    
-    our_texture = Screen('MakeTexture', window, I);
-    
-    Screen('DrawTexture', window, our_texture, [], []);
-    
-    Screen('Flip',window);
-
-    % AF I'm not sure what the mouse robot was for.  
-    % Commenting out make no difference. 
-    %import java.awt.Robot;
-    %mouse = Robot;
-    %mouse.mouseMove(0, 0);
-    %screenSize = get(0, 'screensize');
-    %mouse.mouseMove(screenSize(3)/3,screenSize(4)/2 );
-    
-        
+    Screen('DrawTexture', window, borgTexture, [], []); 
+    Screen('Flip',window);      
 
     % SELECT VALUE FROM RPE SCALE
     abortit = 0;
@@ -203,16 +194,13 @@ end
         if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 40))
             cursorVPosition = cursorVPosition - 5;
         end
-    
-
-
-    
+      
         % Draw pointers to show selection...
         rectangleStart = 73;
         if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
             rectangleHeight = 74;
             cursorVOffset = 60;
-            Screen('DrawTexture', window, our_texture, [], []);
+            Screen('DrawTexture', window, borgTexture, [], []);
             %Screen('FrameRect', window, [0 255 0],[350 rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight)) - 40 1550 rectangleStart + rectangleHeight*(round((cursorVPosition-cursorVOffset) / rectangleHeight)) + 40],5);
             
             pointerCentre = rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight));
@@ -236,8 +224,7 @@ end
     
 
     
-    button_up_texture = Screen('MakeTexture', window, btn_up);
-    button_down_texture = Screen('MakeTexture', window,btn_down);
+
     
     abortit = 0;
     cursorVPosition = 0;
@@ -297,13 +284,12 @@ end
 
    RPE_ratings(trial) = RPE;
 
-   %Each trial loop  ends on a 10 second rest block. 
+   %Each trial loop  ends on a rest block. 
   
-   our_texture = Screen('MakeTexture', window, fixationPointImg);
-   Screen('DrawTexture', window, our_texture, [], []) 
+   Screen('DrawTexture', window, fixation_texture, [], []) 
    Screen('Flip',window);
-   if(devMode == 1)
-       WaitSecs(1)
+   if(devMode == 1)   %If we are in dev mode only wait 1 second. 
+       WaitSecs(1);
    else
        WaitSecs(10);   %Use waitsecs, not pause. Pause can be interrupted. 
    end
