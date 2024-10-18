@@ -104,7 +104,8 @@ catch
 end
 
 %Use the window we already have open
-%This fixed a 'flashing' bug 
+%This fixes a 'fla
+
 %[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
  [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
 
