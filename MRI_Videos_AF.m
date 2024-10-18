@@ -86,6 +86,11 @@ catch
   Screen('CloseAll');
 end
 
+%AF Open the Window outside the loop!
+
+[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
+
+
 %trial
  for trial = 1:length(shuffledVideos) %this uses number of videos to define n trials
     HideCursor;
@@ -97,7 +102,6 @@ end
 
 
 % Open a screen window
-[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
 
 % this opens the stuff to play the movie.
 try
