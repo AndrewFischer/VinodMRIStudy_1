@@ -104,8 +104,7 @@ catch
 end
 
 %Use the window we already have open
-%This fixes a 'fla
-
+%This fixed a 'flashing' bug 
 %[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
  [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
 
@@ -131,7 +130,7 @@ try
     Screen('PlayMovie', movie, 1);
 
     % Playback loop - I don't understand why they can interupt the movie
-    % with a button press?
+    % with a button press?  
     while ~KbCheck  % Play until a key is pressed
         % Get the next frame of the movie
         tex = Screen('GetMovieImage', window, movie);
@@ -153,6 +152,8 @@ try
     Screen('CloseMovie', movie);
 
 catch exception
+    ListenChar(0);
+    Screen('CloseAll')
     disp('Error occurred while playing the movie:');
     disp(exception.message);
 end
@@ -229,8 +230,7 @@ end
     
     % SUBJECT MUST NOW CLICK A BUTTON
     
-    btn_up = imread('button_up.bmp');
-    btn_down = imread('button_down2.bmp');
+
     
     button_up_texture = Screen('MakeTexture', window, btn_up);
     button_down_texture = Screen('MakeTexture', window,btn_down);

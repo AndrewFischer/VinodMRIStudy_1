@@ -18,6 +18,10 @@ respTime = 0;   %Time spent in response blocks
 
 %The rest block is 10 seconds - respTime.
 
+%AF Reading the button images should never have been
+% inside the trial loop. Disk reads can be slow. 
+btn_up = imread('button_up.bmp');
+btn_down = imread('button_down2.bmp');
 
 %% Response Device Setup
 
@@ -130,7 +134,7 @@ try
     Screen('PlayMovie', movie, 1);
 
     % Playback loop - I don't understand why they can interupt the movie
-    % with a button press?
+    % with a button press?  
     while ~KbCheck  % Play until a key is pressed
         % Get the next frame of the movie
         tex = Screen('GetMovieImage', window, movie);
@@ -152,6 +156,8 @@ try
     Screen('CloseMovie', movie);
 
 catch exception
+    ListenChar(0);
+    Screen('CloseAll')
     disp('Error occurred while playing the movie:');
     disp(exception.message);
 end
@@ -228,8 +234,7 @@ end
     
     % SUBJECT MUST NOW CLICK A BUTTON
     
-    btn_up = imread('button_up.bmp');
-    btn_down = imread('button_down2.bmp');
+
     
     button_up_texture = Screen('MakeTexture', window, btn_up);
     button_down_texture = Screen('MakeTexture', window,btn_down);
