@@ -87,6 +87,7 @@ catch
 end
 
 %AF Open the Window outside the loop!
+%This fixed a bug where the screen flashed between trials. 
 
 [window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
 
