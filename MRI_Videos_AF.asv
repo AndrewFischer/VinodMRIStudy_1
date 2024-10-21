@@ -4,7 +4,7 @@
 % Turning warnings off is not acceptable for a real experiment. 
 
 % Setting devmode to 1 speeds things up, enables keyboard...
-% For production, set devMode = 0.
+% For production, set devMode
 devMode = 1;   
 
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
@@ -21,7 +21,7 @@ GetSecs();      %pre-load mex file.
 trialStartTime = 0; %Time at start of trial loop
 respStartTime = 0;  %Time at start of response window   
 respEndTime = 0;    %Time at end of response window
-respDuration = 0;   %Time spent in response blocks
+respTime = 0;   %Time spent in response blocks
 
 
 %The rest block is 10 seconds - respTime.  Dev mode cuts that down to 1s. 
@@ -103,9 +103,7 @@ try
     % 
     keysOfInterest=zeros(1,256);
     keysOfInterest(triggerKey)=1;
-    if(devMode == 1)
-        keysOfInterest(space) = 1;
-    end
+    keysOfInterest(space) = 1;
     KbQueueCreate(deviceIndex932, keysOfInterest);
     KbQueueStart(deviceIndex932);
 
@@ -194,8 +192,8 @@ end
     % SELECT VALUE FROM RPE SCALE
     abortit = 0;
     cursorVPosition = h/2; % Half way up the screen. AF use hight, not a fixed  number. 
-    respStartTime = GetSecs();
-    %AF kbCheck may occassionally miss a button press in the scanner. 
+    
+   % [keyIsDown, ~, keyCode] = KbCheck(-1);   %AF  this will not work reliably in the scanner.   We may occassionally miss a button press
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
         if (keyIsDown == 1 && keyCode(space))
@@ -234,14 +232,23 @@ end
     
     
     % SUBJECT MUST NOW CLICK A BUTTON
+    
+
+    
+
+    
     abortit = 0;
     cursorVPosition = 0;
     buttonDown = false;
     
+
     % Put the cursor in the middel third of the screen but above or below the button. 
     while ( (cursorVPosition == 0) || (cursorVPosition > ((h/2)-100)) && (cursorVPosition < ((h/2)+100)))
         cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
     end
+
+
+
     
     [keyIsDown, ~, keyCode] = KbCheck(-1);
     while abortit == 0
@@ -284,8 +291,8 @@ end
             pause(0.001);
         end
     end
-   respEndTime = GetSecs();   
-   respDuration = respStartTime - respEndTime;   %duration in seconds. 
+
+
    RPE_ratings(trial) = RPE;
 
    %Each trial loop  ends on a rest block. 
