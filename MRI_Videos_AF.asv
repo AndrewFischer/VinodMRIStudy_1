@@ -4,7 +4,7 @@
 % Turning warnings off is not acceptable for a real experiment. 
 
 % Setting devmode to 1 speeds things up, enables keyboard...
-% For production, set devMode
+% For production, set devMode = 0.
 devMode = 1;   
 
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
@@ -21,7 +21,8 @@ GetSecs();      %pre-load mex file.
 trialStartTime = 0; %Time at start of trial loop
 respStartTime = 0;  %Time at start of response window   
 respEndTime = 0;    %Time at end of response window
-respTime = 0;   %Time spent in response blocks
+respDuration = 0;   %Time spent in response blocks
+maxResponseSecs = 5; %Wait no more than 5 seconds for a response. 
 
 
 %The rest block is 10 seconds - respTime.  Dev mode cuts that down to 1s. 
@@ -103,7 +104,9 @@ try
     % 
     keysOfInterest=zeros(1,256);
     keysOfInterest(triggerKey)=1;
-    keysOfInterest(space) = 1;
+    if(devMode == 1)
+        keysOfInterest(space) = 1;
+    end
     KbQueueCreate(deviceIndex932, keysOfInterest);
     KbQueueStart(deviceIndex932);
 
@@ -192,8 +195,8 @@ end
     % SELECT VALUE FROM RPE SCALE
     abortit = 0;
     cursorVPosition = h/2; % Half way up the screen. AF use hight, not a fixed  number. 
-    
-   % [keyIsDown, ~, keyCode] = KbCheck(-1);   %AF  this will not work reliably in the scanner.   We may occassionally miss a button press
+    respStartTime = GetSecs();
+    %AF kbCheck may occassionally miss a button press in the scanner. 
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
         if (keyIsDown == 1 && keyCode(space))
@@ -232,23 +235,14 @@ end
     
     
     % SUBJECT MUST NOW CLICK A BUTTON
-    
-
-    
-
-    
     abortit = 0;
     cursorVPosition = 0;
     buttonDown = false;
     
-
     % Put the cursor in the middel third of the screen but above or below the button. 
     while ( (cursorVPosition == 0) || (cursorVPosition > ((h/2)-100)) && (cursorVPosition < ((h/2)+100)))
         cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
     end
-
-
-
     
     [keyIsDown, ~, keyCode] = KbCheck(-1);
     while abortit == 0
@@ -286,13 +280,16 @@ end
             Screen('FillPoly', window ,[255 0 0], [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
     
             HideCursor; 
-            Screen('Flip',window);  
+            Screen('Flip',window);
+            
+            if(GetSecs)
+
         else
             pause(0.001);
         end
     end
-
-
+   respEndTime = GetSecs();   
+   respDuration = respEndTime - respStartTime;   %duration in seconds. 
    RPE_ratings(trial) = RPE;
 
    %Each trial loop  ends on a rest block. 
@@ -300,10 +297,11 @@ end
    Screen('DrawTexture', window, fixation_texture, [], []) 
    Screen('Flip',window);
    if(devMode == 1)   %If we are in dev mode only wait 1 second. 
-       WaitSecs(1);
+       waitDuration = 1;
    else
-       WaitSecs(10);   %Use waitsecs, not pause. Pause can be interrupted. 
+      waitDuration =  12 - respDuration;      %12 should be a variable set at the top.    
    end
+   WaitSecs(waitTime); %Use waitsecs, not pause. Pause can be interrupted.
    trial = trial + 1; % increase trial number
  end
 Screen('CloseAll');

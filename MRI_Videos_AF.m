@@ -5,7 +5,7 @@
 
 % Setting devmode to 1 speeds things up, enables keyboard...
 % For production, set devMode = 0.
-devMode = 1;   
+devMode = 0;   
 
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
 %Screen('Preference', 'SkipSyncTests', 1);   %Turn off warnings so this will run on a mac. 
@@ -22,6 +22,8 @@ trialStartTime = 0; %Time at start of trial loop
 respStartTime = 0;  %Time at start of response window   
 respEndTime = 0;    %Time at end of response window
 respDuration = 0;   %Time spent in response blocks
+maxResponseSecs = 5; %Wait no more than 5 seconds for a response.
+maxRestSecs = 12;   %maxium rest time, if response time is zero. 
 
 
 %The rest block is 10 seconds - respTime.  Dev mode cuts that down to 1s. 
@@ -180,18 +182,14 @@ catch exception
     Screen('CloseAll')
     disp('Error occurred while playing the movie:');
     disp(exception.message);
-end
+end  % play movie end
 
-
-
-
-% play movie end
+    % SELECT VALUE FROM RPE SCALE
 
     HideCursor;
     Screen('DrawTexture', window, borgTexture, [], []); 
     Screen('Flip',window);      
 
-    % SELECT VALUE FROM RPE SCALE
     abortit = 0;
     cursorVPosition = h/2; % Half way up the screen. AF use hight, not a fixed  number. 
     respStartTime = GetSecs();
@@ -228,12 +226,14 @@ end
         else
             pause(0.001);
         end
-        %mouse.mouseMove(600, cursorVPosition);
+        if((GetSecs() - (respStartTime + maxResponseSecs)) > 0)  %check response timeout
+                abortit = 1;
+        end
+
     end
-    pause(1);
+    %pause(1);   %why is this here?
     
-    
-    % SUBJECT MUST NOW CLICK A BUTTON
+    % SUBJECT MUST NOW CLICK the BUTTON
     abortit = 0;
     cursorVPosition = 0;
     buttonDown = false;
@@ -279,24 +279,30 @@ end
             Screen('FillPoly', window ,[255 0 0], [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
     
             HideCursor; 
-            Screen('Flip',window);  
+            Screen('Flip',window);
+            
+           
         else
             pause(0.001);
         end
     end
    respEndTime = GetSecs();   
-   respDuration = respStartTime - respEndTime;   %duration in seconds. 
-   RPE_ratings(trial) = RPE;
+   respDuration = respEndTime - respStartTime;   %duration in seconds. 
+   RPE_ratings(trial) = RPE;   
 
    %Each trial loop  ends on a rest block. 
   
    Screen('DrawTexture', window, fixation_texture, [], []) 
    Screen('Flip',window);
    if(devMode == 1)   %If we are in dev mode only wait 1 second. 
-       WaitSecs(1);
+       waitDuration = 1;
    else
-       WaitSecs(10);   %Use waitsecs, not pause. Pause can be interrupted. 
+      waitDuration =  maxRestSecs - respDuration; %   
+      if(waitDuration < 0 ) %sanity check. 
+          waitDuration = 0;
+      end
    end
+   WaitSecs(waitDuration); %Use waitsecs, not pause. Pause can be interrupted.
    trial = trial + 1; % increase trial number
  end
 Screen('CloseAll');
