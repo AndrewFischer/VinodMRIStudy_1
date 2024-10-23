@@ -1,16 +1,21 @@
 %%MRI_Videos_AF()
 % 
-% AF note:Production code should pass the timing tests. 
-% Turning warnings off is not acceptable for a real experiment. 
-
+%% Development / Production Settings
 % Setting devmode to 1 speeds things up, enables keyboard...
 % For production, set devMode = 0.
 devMode = 0;   
 
+% Production code should pass the timing tests. 
+% Turning warnings off is not acceptable for a real experiment
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
 %Screen('Preference', 'SkipSyncTests', 1);   %Turn off warnings so this will run on a mac. 
 
-
+%%Initialization Section
+% Set up constants:
+maxResponseSecs = 5; %Wait no more than 5 seconds for a response.
+maxRestSecs = 12;   %maxium rest time, if response time is zero. 
+maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
+%The rest block is 10 seconds - respTime.  Dev mode cuts that down to 1s. 
 
 %%Allocate timing crtical items to reduce delay. 
 %Initialize Trial Timing Variables.
@@ -22,11 +27,7 @@ trialStartTime = 0; %Time at start of trial loop
 respStartTime = 0;  %Time at start of response window   
 respEndTime = 0;    %Time at end of response window
 respDuration = 0;   %Time spent in response blocks
-maxResponseSecs = 5; %Wait no more than 5 seconds for a response.
-maxRestSecs = 12;   %maxium rest time, if response time is zero. 
-
-
-%The rest block is 10 seconds - respTime.  Dev mode cuts that down to 1s. 
+movieStartTime = 0; %Begin playing movie time
 
 %AF Read in static images. 
 btn_up = imread('button_up.bmp');
@@ -34,11 +35,9 @@ btn_down = imread('button_down2.bmp');
 borgImage = imread('Borg.jpg');
 % Pre-load the rest block fixation point.
 fixationPointImg = imread('fixation_cross.png','png');
+
 %% Response Device Setup
-
 KbName('UnifyKeyNames');    %This is for cross-platform compatibility. 
-
-
 % Setup key mapping:
 space = KbName('SPACE');
 esc = KbName('ESCAPE');
@@ -50,10 +49,8 @@ greenButton = KbName('g');  % CurDes932 green button
 blueButton = KbName('b');
 yellowButton = KbName('y');
 
- 
-
 %On Linux you MUST use GetKeyboardIndices to identify the 932.  Otherwise
-%it might use the wrong device. 
+% we might use the wrong device. 
 % On windows all keyboards appear as a single device.
 % if you port to linux use
 % [keyboardIndices, productNames, allInfos] = GetKeyboardIndices([productName][, serialNumber][, locationID])
@@ -80,23 +77,15 @@ shuffledOrder = randperm(length(videoFiles));
 % create new variable with shuffled videls
 shuffledVideos = videoFiles(shuffledOrder); 
 
-
-
-
+%% End Init Block
 %% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
 % Scanner trigger is 't' key. Space works for testing. 
 try
     I = imread('startupScreen.bmp');
-
-
-    % *** [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
     [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
-
     our_texture = Screen('MakeTexture', window, I);
     Screen('DrawTexture', window, our_texture, [], []);
-        
     HideCursor;
-
     Screen('Flip',window);
 
     % Wait for the MRI Scanner trigger, a 't' keypress
@@ -119,13 +108,11 @@ catch
   psychrethrow(psychlasterror);
   Screen('CloseAll');
 end
-
 Screen('Close',our_texture);   %AF Clean up startup screen. 
 
 %Use the window we already have open
 %This fixed a 'flashing' bug 
-%[window, ~] = Screen('OpenWindow', 0, [0 0 0]);  % Open screen with black background
- [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
+[w,h] = Screen('WindowSize',window);    %Get screen dimensions.
 
 % Make the static textures. This should be outside of the trial loop. 
 button_up_texture = Screen('MakeTexture', window, btn_up);
@@ -133,31 +120,26 @@ button_down_texture = Screen('MakeTexture', window,btn_down);
 fixation_texture = Screen('MakeTexture', window, fixationPointImg);
 borgTexture = Screen('MakeTexture', window, borgImage);
 
-
 trialStartTime = GetSecs();  %Time at start of trial loop.
-%%Trial Loop    
- for trial = 1:length(shuffledVideos) %this uses number of videos to define n trials
+%% Trial Loop    
+for trial = 1:length(shuffledVideos) %this uses number of videos to define n trials
     HideCursor;
 
 % Play movie
 
 % Get the full path of the video file using trial no from shuffled videos
-    trialVideoFile = fullfile(folderPath, shuffledVideos{trial});
+   trialVideoFile = fullfile(folderPath, shuffledVideos{trial});
 
-
-% Open a screen window
-
-% this opens the stuff to play the movie.
+% Play the movie.
 try
     % Open the movie file
     movie = Screen('OpenMovie', window, trialVideoFile);
 
     % Start playing the movie
     Screen('PlayMovie', movie, 1);
-
-    % Playback loop - I don't understand why they can interupt the movie
-    % with a button press?  
-    while ~KbCheck  % Play until a key is pressed
+    movieStartTime = GetSecs();
+    % Playback loop 
+    while movieStartTime + 4 > GetSecs() % Play 4 sec or end of movie
         % Get the next frame of the movie
         tex = Screen('GetMovieImage', window, movie);
 
@@ -303,7 +285,8 @@ end  % play movie end
       end
    end
    WaitSecs(waitDuration); %Use waitsecs, not pause. Pause can be interrupted.
-   trial = trial + 1; % increase trial number
+   % ? We are a for loop! trial = trial + 1; % increase trial number
+
  end
 Screen('CloseAll');
 RPE_ratings(trial) = now;     %Append current time as double.
