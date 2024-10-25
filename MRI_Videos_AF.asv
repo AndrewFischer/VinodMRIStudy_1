@@ -82,9 +82,9 @@ shuffledVideos = videoFiles(shuffledOrder);
 
 %Preallocate arrays to reduce overhead in trial loop.
 RPE = zeros(length(shuffledVideos),1,'int16');
-ResponseTime = zeros(length(shuffledVideos),1);
-ClickTime = zeros(length(shuffledVideos),1);
-RestDuration = zeros(length(shuffledVideos),1);
+ResponseTime = zeros(length(shuffledVideos));
+ClickTime = zeros(length(shuffledVideos));
+RestDuration = zeros(length(shuffledVideos));
 
 %% End Init Block
 %% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
@@ -219,7 +219,6 @@ end  % play movie end
         end
         if((GetSecs() - (respStartTime + maxResponseSecs)) > 0)  %check response timeout
                 abortit = 1;
-                RPE(trial) = 0;  %No response, timeout. 
         end
 
     end
@@ -303,7 +302,7 @@ end  % play movie end
  end
 Screen('CloseAll');
 
-loggedData = table(shuffledVideos',RPE,ResponseTime, ClickTime,RestDuration);
+loggedData = table(videoFiles',RPE,ResponseTime, ClickTime,RestDuration);
 theName = strcat("Ratings",subject,".csv");
 writetable(loggedData,theName);
 %writematrix(RPE_ratings,theName,"WriteMode","append");
