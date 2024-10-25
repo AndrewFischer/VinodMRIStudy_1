@@ -31,6 +31,7 @@ respEndTime = 0;    %Time at end of response window
 respDuration = 0;   %Time spent in response blocks
 movieStartTime = 0; %Begin playing movie time
 
+
 %AF Read in static images. 
 btn_up = imread('button_up.bmp');
 btn_down = imread('button_down2.bmp');
@@ -78,6 +79,10 @@ shuffledOrder = randperm(length(videoFiles));
 
 % create new variable with shuffled videls
 shuffledVideos = videoFiles(shuffledOrder); 
+
+%Preallocate arrays
+RPE = zeros(length(shuffledVideos),'int16');
+RestDuration = zeros(length(shuffledVideos));
 
 %% End Init Block
 %% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
@@ -206,7 +211,7 @@ end  % play movie end
     
             Screen('Flip',window);
     
-            RPE = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
+            RPE(trial) = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
         else
             pause(0.001);
         end
@@ -216,7 +221,7 @@ end  % play movie end
 
     end
     firstRespTime = GetSecs();
-    
+
     % SUBJECT MUST NOW CLICK the BUTTON
     abortit = 0;
     cursorVPosition = 0;
@@ -274,7 +279,6 @@ end  % play movie end
     end
    respEndTime = GetSecs();   
    respDuration = respEndTime - respStartTime;   %duration in seconds. 
-   RPE_ratings(trial) = RPE;   
    %TBD - save off the times.
 
    %Each trial loop  ends on a rest block. 
@@ -289,11 +293,14 @@ end  % play movie end
           waitDuration = 0;
       end
    end
+   RestDuration(trial) = waitDuration;
    WaitSecs(waitDuration); %Use waitsecs, not pause. Pause can be interrupted.
 
  end
 Screen('CloseAll');
-RPE_ratings(trial) = now;     %Append current time as double.
+
+loggedData = table(VideoName,RPE,ResponseTime, ClickTime,RestDuration);
+
 
 theName = strcat("Ratings",subject,".csv");
-writematrix(RPE_ratings,theName,"WriteMode","append");
+%writematrix(RPE_ratings,theName,"WriteMode","append");

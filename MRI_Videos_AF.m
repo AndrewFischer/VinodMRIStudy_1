@@ -12,7 +12,7 @@ Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warni
 
 %%Initialization Section
 % Set up constants:
-maxResponseSecs = 5; %Wait no more than 5 seconds for a response.
+maxResponseSecs = 4; %Wait no more than 5 seconds for a response.
 maxRestSecs = 12;   %maxium rest time, if response time is zero. 
 maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
 %The rest block is 10 seconds - respTime.  Dev mode cuts that down to 1s. 
@@ -30,6 +30,7 @@ secondRespTime = 0; %Time of second (click button) response
 respEndTime = 0;    %Time at end of response window
 respDuration = 0;   %Time spent in response blocks
 movieStartTime = 0; %Begin playing movie time
+
 
 %AF Read in static images. 
 btn_up = imread('button_up.bmp');
@@ -78,6 +79,12 @@ shuffledOrder = randperm(length(videoFiles));
 
 % create new variable with shuffled videls
 shuffledVideos = videoFiles(shuffledOrder); 
+
+%Preallocate arrays to reduce overhead in trial loop.
+RPE = zeros(length(shuffledVideos),'int16');
+ResponseTime = zeros(length(shuffledVideos));
+ClickTime = zeros(length(shuffledVideos));
+RestDuration = zeros(length(shuffledVideos));
 
 %% End Init Block
 %% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
@@ -206,7 +213,7 @@ end  % play movie end
     
             Screen('Flip',window);
     
-            RPE = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
+            RPE(trial) = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
         else
             pause(0.001);
         end
@@ -216,7 +223,7 @@ end  % play movie end
 
     end
     firstRespTime = GetSecs();
-    
+    ResponseTime(trial) = firstRespTime - respStartTime;
     % SUBJECT MUST NOW CLICK the BUTTON
     abortit = 0;
     cursorVPosition = 0;
@@ -274,7 +281,7 @@ end  % play movie end
     end
    respEndTime = GetSecs();   
    respDuration = respEndTime - respStartTime;   %duration in seconds. 
-   RPE_ratings(trial) = RPE;   
+   ClickTime(trial) = respEndTime - firstRespTime; %RT for 'click button'
    %TBD - save off the times.
 
    %Each trial loop  ends on a rest block. 
@@ -289,11 +296,13 @@ end  % play movie end
           waitDuration = 0;
       end
    end
+   RestDuration(trial) = waitDuration;
    WaitSecs(waitDuration); %Use waitsecs, not pause. Pause can be interrupted.
 
  end
 Screen('CloseAll');
-RPE_ratings(trial) = now;     %Append current time as double.
 
+loggedData = table(videoFiles,RPE,ResponseTime, ClickTime,RestDuration);
 theName = strcat("Ratings",subject,".csv");
-writematrix(RPE_ratings,theName,"WriteMode","append");
+writetable(loggedData,theName);
+%writematrix(RPE_ratings,theName,"WriteMode","append");
