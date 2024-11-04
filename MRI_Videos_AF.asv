@@ -14,7 +14,7 @@ Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warni
 % Set up constants:
 maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
 maxResponseSecs = 4; %Wait no more than 4 seconds for a response.
-maxRestSecs = 18;   %maxium rest time, if response time is zero. 
+maxRestSecs = 12;   %maxium rest time, if response time is zero. 
 %The rest block is 12 seconds - respTime.  Dev mode cuts that down to 1s. 
 
 %%Allocate timing crtical items to reduce delay. 
@@ -98,13 +98,6 @@ try
     our_texture = Screen('MakeTexture', window, I);
     Screen('DrawTexture', window, our_texture, [], []);
     HideCursor;
-
-    % Make the static textures. This should be outside of the trial loop. 
-    button_up_texture = Screen('MakeTexture', window, btn_up);
-    button_down_texture = Screen('MakeTexture', window,btn_down);
-    fixation_texture = Screen('MakeTexture', window, fixationPointImg);
-    borgTexture = Screen('MakeTexture', window, borgImage);
-
     Screen('Flip',window);
 
     % Wait for the MRI Scanner trigger, a 't' keypress
@@ -135,7 +128,11 @@ triggerTime = GetSecs();       %This is 'when' we've triggered
 %This fixed a 'flashing' bug 
 [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
 
-
+% Make the static textures. This should be outside of the trial loop. 
+button_up_texture = Screen('MakeTexture', window, btn_up);
+button_down_texture = Screen('MakeTexture', window,btn_down);
+fixation_texture = Screen('MakeTexture', window, fixationPointImg);
+borgTexture = Screen('MakeTexture', window, borgImage);
 
 trialStartTime = GetSecs();  %Time at start of trial loop.
 %% Trial Loop    
@@ -157,7 +154,7 @@ try
     movieStartTime = GetSecs();
     movieStartTimes(trial) =  movieStartTime - triggerTime;  %Delta time from trigger. 
     % Playback loop 
-    while movieStartTime + maxMovieDuration > GetSecs() % Play 4 sec or end of movie
+    while movieStartTime + 4 > GetSecs() % Play 4 sec or end of movie
         % Get the next frame of the movie
         tex = Screen('GetMovieImage', window, movie);
 
