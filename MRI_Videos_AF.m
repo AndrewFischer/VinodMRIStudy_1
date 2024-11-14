@@ -15,7 +15,7 @@ Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warni
 maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
 maxResponseSecs = 4; %Wait no more than 4 seconds for a response.
 maxRestSecs = 18;   %maxium rest time, if response time is zero. 
-%The rest block is 12 seconds - respTime.  Dev mode cuts that down to 1s. 
+%The rest block is 18 seconds - response times.  Dev mode cuts that down to 1s. 
 
 %%Allocate timing crtical items to reduce delay. 
 %Initialize Trial Timing Variables.
@@ -196,13 +196,16 @@ end  % play movie end
     %AF kbCheck may occassionally miss a button press in the scanner. 
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
-        if (keyIsDown == 1 && keyCode(space))
+        if (keyIsDown == 1 && keyCode(greenButton))
             abortit = 1;
         end
-        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < (h - 40)))
+        if (keyIsDown == 1 && keyCode(yellowButton))
+            abortit = 1;
+        end
+        if (keyIsDown == 1 && keyCode(blueButton) && (cursorVPosition < (h - 40)))
             cursorVPosition = cursorVPosition + 5;
         end
-        if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 40))
+        if (keyIsDown == 1 && keyCode(redButton) && (cursorVPosition > 40))
             cursorVPosition = cursorVPosition - 5;
         end
       
@@ -244,16 +247,23 @@ end  % play movie end
         cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
     end
     
-    [keyIsDown, ~, keyCode] = KbCheck(-1);
+    FlushEvents('keyDown');
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
+        if (keyIsDown == 1 && keyCode(greenButton)  && (buttonDown == true) )
+            abortit = 1;
+        end
+        if (keyIsDown == 1 && keyCode(yellowButton) && (buttonDown == true))
+            abortit = 1;
+        end
+
         if (keyIsDown == 1 && keyCode(space) && (buttonDown == true))
             abortit = 1;
         end
-        if (keyIsDown == 1 && keyCode(down) && (cursorVPosition < h-50))
+        if (keyIsDown == 1 && keyCode(blueButton) && (cursorVPosition < h-50))
             cursorVPosition = cursorVPosition + 5;
         end
-        if (keyIsDown == 1 && keyCode(up) && (cursorVPosition > 50))
+        if (keyIsDown == 1 && keyCode(redButton) && (cursorVPosition > 50))
             cursorVPosition = cursorVPosition - 5;
         end
     
