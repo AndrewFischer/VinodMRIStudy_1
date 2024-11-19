@@ -247,7 +247,7 @@ end  % play movie end
         cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
     end
     
-    FlushEvents('keyDown');
+   % FlushEvents('keyDown');
     while abortit == 0
         [keyIsDown, ~, keyCode] = KbCheck(-1);
         if (keyIsDown == 1 && keyCode(greenButton)  && (buttonDown == true) )
