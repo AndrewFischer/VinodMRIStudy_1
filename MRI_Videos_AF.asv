@@ -17,11 +17,8 @@ end
 % Set up constants:
 maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
 maxResponseSecs = 4; %Wait no more than 4 seconds for a response.
-%The rest block is 18 seconds - response times.  Dev mode cuts that down. 
-maxRestSecs = 18;   %maxium rest time, if response time is zero.
-if devMode == 1
-    maxRestSecs = 8;
-end
+maxRestSecs = 18;   %maxium rest time, if response time is zero. 
+%The rest block is 18 seconds - response times.  Dev mode cuts that down to 1s. 
 
 %%Allocate timing crtical items to reduce delay. 
 %Initialize Trial Timing Variables.
@@ -215,19 +212,17 @@ end  % play movie end
     while abortit == 0
         [keyIsDown, keyCode] = KbQueueCheck(deviceIndex932);
         if keyIsDown
-            if keyCode(greenButton)
-                abortit = 1;
-            elseif keyCode(yellowButton)
-                abortit = 1;
-            elseif keyCode(blueButton)
-                if (cursorVPosition < (h - 40))
-                    cursorVPosition = cursorVPosition + 5;
-                end
-            elseif keyCode(redButton)
-                if (cursorVPosition > 40)
-                    cursorVPosition = cursorVPosition - 5;
-                end
-            end
+        if (keyCode(greenButton) ~= 0)
+            abortit = 1;
+        end
+        if (keyCode(yellowButton) ~= 0)
+            abortit = 1;
+        end
+        if ((keyCode(blueButton) ~= 0) && (cursorVPosition < (h - 40)))
+            cursorVPosition = cursorVPosition + 5;
+        end
+        if ((keyCode(redButton) ~= 0) && (cursorVPosition > 40))
+            cursorVPosition = cursorVPosition - 5;
         end
       
         % Draw pointers to show selection...
@@ -258,9 +253,7 @@ end  % play movie end
     end
     firstRespTime = GetSecs();
     ResponseTime(trial) = firstRespTime - respStartTime;
-    KbQueueRelease(deviceIndex932);  
-
-
+    KbQueueRelease
     % SUBJECT MUST NOW CLICK the BUTTON
     abortit = 0;
     cursorVPosition = 0;
