@@ -28,7 +28,7 @@ end
 %We use GetSecs for accurate trial timing. The absolute value of 
 %GetSecs is platform dependant.  However the delta values are accurate.
 %So we have to get the time as the start of an event and the end. 
-GetSecs();      %pre-load mex file.
+GetSecs();          %pre-load mex file.
 triggerTime = 0;    %Time at trigger
 trialStartTime = 0; %Time at start of trial loop
 videoStartTime = 0; %Time at start of video. (delta from trigger) 
@@ -37,7 +37,15 @@ firstRespTime = 0;  %Time of first response
 secondRespTime = 0; %Time of second (click button) response
 respEndTime = 0;    %Time at end of response window
 respDuration = 0;   %Time spent in response blocks
-movieStartTime = 0; %Begin playing movie time
+movieStartTime = 0; %Begin playing movie 
+
+rectangleStart = 73;
+rectangleHeight = 74;
+
+
+% colours
+black = [0 0 0];
+red = [255 0 0];
 
 
 %AF Read in static images. 
@@ -70,8 +78,6 @@ yellowButton = KbName('y');
 deviceIndex932 = [];  %index of the CurDes932 interface box.
 
 %% Setup video files
-subject = input('Please enter a subject number ', 's');
-
 % Set the path to the "Videos" folder
 folderPath = fullfile(pwd, 'Videos');  % 'pwd' returns the current folder path
 
@@ -95,12 +101,14 @@ ClickTime = zeros(length(shuffledVideos),1);
 RestDuration = zeros(length(shuffledVideos),1);
 movieStartTimes = zeros(length(shuffledVideos),1);
 
+subject = input('Please enter a subject number ', 's');
+
 %% End Init Block
 %% *** SHOW START UP SCREEN AND WAIT FOR Scanner Trigger ***
 % Scanner trigger is 't' key. Space works for testing. 
 try
     I = imread('startupScreen.bmp');
-    [window, ~] = Screen('OpenWindow', 0, [0 0 0], [],32,2);
+    [window, ~] = Screen('OpenWindow', 0, black, [],32,2);
     our_texture = Screen('MakeTexture', window, I);
     Screen('DrawTexture', window, our_texture, [], []);
     HideCursor;
@@ -145,17 +153,18 @@ triggerTime = GetSecs();       %This is 'when' we've triggered
 
 trialStartTime = GetSecs();  %Time at start of trial loop.
 %% Trial Loop    
-for trial = 1:length(shuffledVideos) %this uses number of videos to define n trials
+for trial = 1:length(shuffledVideos) %Use number of videos to set n trials
     HideCursor;
 
 % Play movie
 
-% Get the full path of the video file using trial no from shuffled videos
-   trialVideoFile = fullfile(folderPath, shuffledVideos{trial});
 
 % Play the movie.
 try
     % Open the movie file
+    % Get the full path of the video file from shuffled videos
+    trialVideoFile = fullfile(folderPath, shuffledVideos{trial});
+
     movie = Screen('OpenMovie', window, trialVideoFile);
 
     % Start playing the movie
@@ -211,7 +220,24 @@ end  % play movie end
     KbQueueCreate(deviceIndex932, keysOfInterest);
     KbQueueStart(deviceIndex932);
     respStartTime = GetSecs();
-    %AF kbCheck may occassionally miss a button press in the scanner. 
+
+    %draw the rpe cursors in the centre of the scale
+    if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
+        cursorVOffset = 60;
+        Screen('DrawTexture', window, borgTexture, [], []);
+             %Screen('FrameRect', window, [0 255 0],[350 rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight)) - 40 1550 rectangleStart + rectangleHeight*(round((cursorVPosition-cursorVOffset) / rectangleHeight)) + 40],5);
+            
+        pointerCentre = rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight));
+        Screen('FillPoly', window ,red , [340 pointerCentre - 30; 340 pointerCentre + 30; 390 pointerCentre],5);
+        Screen('FillPoly', window ,red , [940 pointerCentre - 30; 940 pointerCentre + 30; 890 pointerCentre],5);
+    
+        HideCursor;
+        Screen('Flip',window);
+        RPE(trial) = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
+   end
+
+    %Look for particpant response.
+    %KbWait doesn't work with the 932. 
     while abortit == 0
         [keyIsDown, keyCode] = KbQueueCheck(deviceIndex932);
         if keyIsDown
@@ -227,34 +253,27 @@ end  % play movie end
                 if (cursorVPosition > 40)
                     cursorVPosition = cursorVPosition - 5;
                 end
-            end
-        end
-      
+            end        
         % Draw pointers to show selection...
-        rectangleStart = 73;
-        if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
-            rectangleHeight = 74;
-            cursorVOffset = 60;
-            Screen('DrawTexture', window, borgTexture, [], []);
-            %Screen('FrameRect', window, [0 255 0],[350 rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight)) - 40 1550 rectangleStart + rectangleHeight*(round((cursorVPosition-cursorVOffset) / rectangleHeight)) + 40],5);
+            if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
+                rectangleHeight = 74;
+                cursorVOffset = 60;
+                Screen('DrawTexture', window, borgTexture, [], []);
+             %Screen('FrameRect', window, [0 255 0],[350 rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight)) - 40 1550 rectangleStart + rectangleHeight*(round((cursorVPosition-cursorVOffset) / rectangleHeight)) + 40],5);
             
-            pointerCentre = rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight));
-            Screen('FillPoly', window ,[255 0 0], [340 pointerCentre - 30; 340 pointerCentre + 30; 390 pointerCentre],5);
-            Screen('FillPoly', window ,[255 0 0], [940 pointerCentre - 30; 940 pointerCentre + 30; 890 pointerCentre],5);
+                pointerCentre = rectangleStart + rectangleHeight *(round((cursorVPosition-cursorVOffset) / rectangleHeight));
+                Screen('FillPoly', window ,red , [340 pointerCentre - 30; 340 pointerCentre + 30; 390 pointerCentre],5);
+                Screen('FillPoly', window ,red , [940 pointerCentre - 30; 940 pointerCentre + 30; 890 pointerCentre],5);
     
-            HideCursor;
-    
-            Screen('Flip',window);
-    
-            RPE(trial) = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
-        else
-            pause(0.001);
+                HideCursor;
+                Screen('Flip',window);
+                RPE(trial) = 6 + round((cursorVPosition - cursorVOffset) / rectangleHeight);
+            end
         end
         if((GetSecs() - (respStartTime + maxResponseSecs)) > 0)  %check response timeout
                 abortit = 1;
                 RPE(trial) = 0;  %No response, timeout. 
         end
-
     end
     firstRespTime = GetSecs();
     ResponseTime(trial) = firstRespTime - respStartTime;
@@ -309,9 +328,9 @@ end  % play movie end
             
             pointerCentre = cursorVPosition;
     
-            Screen('FillPoly', window ,[255 0 0], [arrowHPosition pointerCentre; arrowHPosition + 35 pointerCentre + 10; arrowHPosition + 20 pointerCentre + 30],5);
+            Screen('FillPoly', window ,red , [arrowHPosition pointerCentre; arrowHPosition + 35 pointerCentre + 10; arrowHPosition + 20 pointerCentre + 30],5);
             
-            Screen('FillPoly', window ,[255 0 0], [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
+            Screen('FillPoly', window ,red , [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
     
             HideCursor; 
             Screen('Flip',window);
