@@ -2,7 +2,6 @@
 % 
 %% Development / Production Settings
 % Setting devmode to 1 speeds things up, enables keyboard...
-% unimportant. 
 % For production, set devMode = 0.
 devMode = 1;
 if (devMode == 1)
