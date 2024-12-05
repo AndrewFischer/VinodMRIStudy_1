@@ -3,7 +3,7 @@
 %% Development / Production Settings
 % Setting devmode to 1 speeds things up, enables keyboard...
 % For production, set devMode = 0.
-devMode = 1;
+devMode = 0;
 if (devMode == 1)
     macOS = 0;  %Set to 1 ONLY if you are on a mac.  This is for devMode ONLY
 end
@@ -16,10 +16,10 @@ if (macOS == 1)
 end
 %%Initialization Section
 % Set up constants:
-maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
-maxResponseSecs = 4; %Wait no more than 4 seconds for a response.
+maxMovieDuration = 14; %Stop playing movies after 14 seconds. 
+maxResponseSecs = 6; %Wait no more than 6 seconds for a response.
 %The rest block is 18 seconds - response times.  Dev mode cuts that down. 
-maxRestSecs = 18;   %maxium rest time, if response time is zero.
+maxRestSecs = 20;   %maxium rest time, if response time is zero.
 if devMode == 1
     maxRestSecs = 8;
 end
@@ -150,15 +150,13 @@ triggerTime = GetSecs();       %This is 'when' we've triggered
 %This fixed a 'flashing' bug 
 [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
 
-
+screen_centre = h/2;
 
 trialStartTime = GetSecs();  %Time at start of trial loop.
 %% Trial Loop    
+HideCursor;
+
 for trial = 1:length(shuffledVideos) %Use number of videos to set n trials
-    HideCursor;
-
-% Play movie
-
 
 % Play the movie.
 try
@@ -207,7 +205,7 @@ end  % play movie end
     Screen('Flip',window);      
 
     abortit = 0;
-    cursorVPosition = h/2; % Half way up the screen. AF use hight, not a fixed  number.
+    cursorVPosition = screen_centre; % Half way up the screen. AF use hight, not a fixed  number.
 
 
     keysOfInterest=zeros(1,256);
@@ -215,6 +213,7 @@ end  % play movie end
     keysOfInterest(greenButton) = 1; %select
     keysOfInterest(yellowButton) = 1; %select
     keysOfInterest(blueButton) = 1;  %cursor + 5
+    keysOfInterest(esc) = 1;        %EXIT 
     if(devMode == 1)
         keysOfInterest(space) = 1;  %extra abort in dev mode only
     end
@@ -246,14 +245,18 @@ end  % play movie end
                 abortit = 1;
             elseif keyCode(yellowButton)
                 abortit = 1;
-            elseif keyCode(blueButton)
+            elseif keyCode(blueButton) ~= 0
                 if (cursorVPosition < (h - 40))
-                    cursorVPosition = cursorVPosition + 20;
+                    cursorVPosition = cursorVPosition + rectangleHeight;
                 end
-            elseif keyCode(redButton)
+            elseif keyCode(redButton) ~= 0
                 if (cursorVPosition > 40)
-                    cursorVPosition = cursorVPosition - 5;
+                    cursorVPosition = cursorVPosition - rectangleHeight;
                 end
+            elseif keyCode(esc)
+                Screen('CloseAll');
+                KbQueueRelease(deviceIndex932);   
+                return;
             end        
         % Draw pointers to show selection...
             if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
@@ -279,48 +282,29 @@ end  % play movie end
     end
     firstRespTime = GetSecs();
     ResponseTime(trial) = firstRespTime - respStartTime;
-    KbQueueRelease(deviceIndex932);  
 
-
+try
     % SUBJECT MUST NOW CLICK the BUTTON
     abortit = 0;
-    cursorVPosition = 0;
     buttonDown = false;
-    
-    % Put the cursor in the middle third of the screen but above or below the button. 
-    while ( (cursorVPosition == 0) || (cursorVPosition > ((h/2)-100)) && (cursorVPosition < ((h/2)+100)))
-        cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
-    end
-    
-   % FlushEvents('keyDown');
-    while abortit == 0
-        [keyIsDown, ~, keyCode] = KbCheck(-1);
-        if (keyIsDown == 1 && keyCode(greenButton)  && (buttonDown == true) )
-            abortit = 1;
-        end
-        if (keyIsDown == 1 && keyCode(yellowButton) && (buttonDown == true))
-            abortit = 1;
-        end
 
-        if (keyIsDown == 1 && keyCode(space) && (buttonDown == true))
-            abortit = 1;
-        end
-        if (keyIsDown == 1 && keyCode(blueButton) && (cursorVPosition < h-50))
-            cursorVPosition = cursorVPosition + 5;
-        end
-        if (keyIsDown == 1 && keyCode(redButton) && (cursorVPosition > 50))
-            cursorVPosition = cursorVPosition - 5;
-        end
+    if cursorVPosition > (screen_centre)
+        cursorVPosition = (screen_centre) - (cursorVPosition - (screen_centre));
+    else
+        cursorVPosition = (screen_centre) + ((screen_centre) - cursorVPosition);
+    end
+    % Put the cursor in the middle third of the screen but above or below the button. 
+    %while ( (cursorVPosition == 0) || (cursorVPosition > ((h/2)-100)) && (cursorVPosition < ((h/2)+100)))
+    %    cursorVPosition = (h/3) + randi(h/3);   %anywhere in the middle third of the screen. 
+    %end
     
-        % Draw pointers to show selection...
-        rectangleStart = 73;
-        arrowHPosition = w/2;
-    
-        if ((cursorVPosition > 50) && (cursorVPosition < (h - 65)))
-            rectangleHeight = 74;
-            cursorVOffset = 60;
-    
-            if (cursorVPosition > (h/2 - 100) ) && (cursorVPosition < (h/2)+100 )
+
+    rectangleStart = 73;
+    arrowHPosition = w/2;    
+    rectangleHeight = 74;
+    cursorVOffset = 60;
+ 
+     if (cursorVPosition > (screen_centre - 100) ) && (cursorVPosition < (screen_centre)+100 )
                 Screen('DrawTexture', window, button_down_texture, [], []); 
                 buttonDown = true;
             else
@@ -331,15 +315,48 @@ end  % play movie end
             pointerCentre = cursorVPosition;
     
             Screen('FillPoly', window ,red , [arrowHPosition pointerCentre; arrowHPosition + 35 pointerCentre + 10; arrowHPosition + 20 pointerCentre + 30],5);
-            
             Screen('FillPoly', window ,red , [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
     
             HideCursor; 
             Screen('Flip',window);
-                  
-        else
-            pause(0.001);
-        end
+
+    while abortit == 0
+        [pressed, keyCode, ~, ~,~] = KbQueueCheck(deviceIndex932);
+        if pressed
+            if keyCode(greenButton)
+                abortit = 1;
+            elseif keyCode(yellowButton)
+                abortit = 1;
+            elseif keyCode(blueButton) ~= 0
+                if (cursorVPosition < (h - 40))
+                    cursorVPosition = cursorVPosition + rectangleHeight;
+                end
+            elseif keyCode(redButton) ~= 0
+                if (cursorVPosition > 40)
+                    cursorVPosition = cursorVPosition - rectangleHeight;
+                end
+            elseif keyCode(esc)
+                Screen('CloseAll');
+                KbQueueRelease(deviceIndex932);   
+                return;;    
+            end   
+    
+        % Draw pointers to show selection...
+            if (cursorVPosition > (screen_centre - 100) ) && (cursorVPosition < (screen_centre)+100 )
+                Screen('DrawTexture', window, button_down_texture, [], []); 
+                buttonDown = true;
+            else
+                Screen('DrawTexture', window, button_up_texture , [], []);
+                buttonDown = false;
+            end
+            
+            pointerCentre = cursorVPosition;
+    
+            Screen('FillPoly', window ,red , [arrowHPosition pointerCentre; arrowHPosition + 35 pointerCentre + 10; arrowHPosition + 20 pointerCentre + 30],5);
+            Screen('FillPoly', window ,red , [arrowHPosition + 27 pointerCentre + 15; arrowHPosition + 40 pointerCentre + 25; arrowHPosition + 36 pointerCentre + 31; arrowHPosition + 22 pointerCentre + 20],5);
+            Screen('Flip',window);
+        end  %if pressed
+        WaitSecs(.001);
         if (GetSecs() > firstRespTime + maxResponseSecs)  %Timeout?
             break
         end
@@ -348,9 +365,16 @@ end  % play movie end
    respDuration = respEndTime - respStartTime;   %duration in seconds. 
    ClickTime(trial) = respEndTime - firstRespTime; %RT for 'click button'
    %TBD - save off the times.
-
+catch exception
+    %ListenChar(0);
+    Screen('CloseAll')
+    disp('Error occurred while waiting for button:');
+    disp(exception.message);
+    break
+end
    %Each trial loop  ends on a rest block. 
-  
+   KbQueueRelease(deviceIndex932);  
+
    Screen('DrawTexture', window, fixation_texture, [], []) 
    Screen('Flip',window);
    if(devMode == 1)   %If we are in dev mode only wait 1 second. 
