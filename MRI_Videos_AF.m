@@ -3,16 +3,25 @@
 %% Development / Production Settings
 % Setting devmode to 1 speeds things up, enables keyboard...
 % For production, set devMode = 0.
-devMode = 0;   
+devMode = 1;
+if (devMode == 1)
+    macOS = 1;  %Set to 1 ONLY if you are on a mac.  This is for devMode ONLY
+end
 
 % Production code should pass the timing tests. 
 % Turning warnings off is not acceptable for a real experiment
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
+<<<<<<< Updated upstream
 
 if devMode == 1
     %Screen('Preference', 'SkipSyncTests', 1);   %Turn off warnings so this will run on a mac. 
 end
+=======
+>>>>>>> Stashed changes
 
+if (macOS == 1)
+    Screen('Preference', 'SkipSyncTests', 1);   %Turn off sync tests so this will run on a mac. 
+end
 %%Initialization Section
 % Set up constants:
 maxMovieDuration = 4; %Stop playing movies after 4 seconds. 
