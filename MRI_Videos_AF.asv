@@ -246,13 +246,13 @@ end  % play movie end
                 abortit = 1;
             elseif keyCode(yellowButton)
                 abortit = 1;
-            elseif keyCode(blueButton) ~= 0
+            elseif keyCode(blueButton)
                 if (cursorVPosition < (h - 40))
-                    cursorVPosition = cursorVPosition + rectangleHeight;
+                    cursorVPosition = cursorVPosition + 20;
                 end
-            elseif keyCode(redButton) ~= 0
+            elseif keyCode(redButton)
                 if (cursorVPosition > 40)
-                    cursorVPosition = cursorVPosition - rectangleHeight;
+                    cursorVPosition = cursorVPosition - 5;
                 end
             end        
         % Draw pointers to show selection...
