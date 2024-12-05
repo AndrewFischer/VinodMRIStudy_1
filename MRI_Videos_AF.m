@@ -4,15 +4,14 @@
 % Setting devmode to 1 speeds things up, enables keyboard...
 % For production, set devMode = 0.
 devMode = 0;
-if (devMode == 1)
-    macOS = 0;  %Set to 1 ONLY if you are on a mac.  This is for devMode ONLY
-end
 
 % Production code should pass the timing tests. 
 % Turning warnings off is not acceptable for a real experiment
 Screen('Preference','VisualDebugLevel', 1);  %0 turns off all in-experment warnings. 
-if (macOS == 1)
-    Screen('Preference', 'SkipSyncTests', 1);   %Turn off sync tests so this will run on a mac. 
+if devMode
+    if ismac
+        Screen('Preference', 'SkipSyncTests', 1);   %Turn off sync tests so this will run on a mac. 
+    end
 end
 %%Initialization Section
 % Set up constants:
