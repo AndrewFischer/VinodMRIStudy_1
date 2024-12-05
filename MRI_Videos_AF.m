@@ -20,8 +20,13 @@ maxResponseSecs = 6; %Wait no more than 6 seconds for a response.
 %The rest block is 18 seconds - response times.  Dev mode cuts that down. 
 maxRestSecs = 20;   %maxium rest time, if response time is zero.
 if devMode == 1
+    maxMovieDuration = 4;
     maxRestSecs = 8;
 end
+% Graphics constants
+rectangleStart = 73;
+rectangleHeight = 74;
+screen_centre_y = 0;  % Middle of screen. Set after we've opened a window. 
 
 %%Allocate timing crtical items to reduce delay. 
 %Initialize Trial Timing Variables.
@@ -39,8 +44,7 @@ respEndTime = 0;    %Time at end of response window
 respDuration = 0;   %Time spent in response blocks
 movieStartTime = 0; %Begin playing movie 
 
-rectangleStart = 73;
-rectangleHeight = 74;
+
 
 
 % colours
@@ -100,6 +104,7 @@ ResponseTime = zeros(length(shuffledVideos),1);
 ClickTime = zeros(length(shuffledVideos),1);
 RestDuration = zeros(length(shuffledVideos),1);
 movieStartTimes = zeros(length(shuffledVideos),1);
+ef = zeros(length(shuffledVideos),1);  %effort 1,2,3 or 4;
 
 subject = input('Please enter a subject number ', 's');
 
@@ -123,8 +128,7 @@ try
 
     % Wait for the MRI Scanner trigger, a 't' keypress
     % See
-    % https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychDocumentation/KbQueue.html
-    % 
+    % https://github.com/Psychtoolbox-3/Psychtoolbox-3/blob/master/Psychtoolbox/PsychDocumentation/KbQueue.htm
     keysOfInterest=zeros(1,256);
     keysOfInterest(triggerKey)=1;
     if(devMode == 1)
@@ -132,9 +136,7 @@ try
     end
     KbQueueCreate(deviceIndex932, keysOfInterest);
     KbQueueStart(deviceIndex932);
-
     timeSecs = KbQueueWait(deviceIndex932); 
-
     KbQueueRelease(deviceIndex932);   
 catch
   ListenChar(0);
@@ -148,8 +150,7 @@ triggerTime = GetSecs();       %This is 'when' we've triggered
 %Use the window we already have open
 %This fixed a 'flashing' bug 
 [w,h] = Screen('WindowSize',window);    %Get screen dimensions.
-
-screen_centre = h/2;
+screen_centre_y = h/2;
 
 trialStartTime = GetSecs();  %Time at start of trial loop.
 %% Trial Loop    
@@ -162,6 +163,7 @@ try
     % Open the movie file
     % Get the full path of the video file from shuffled videos
     trialVideoFile = fullfile(folderPath, shuffledVideos{trial});
+    ef(trial) = nameToEffort(shuffledVideos(trial));
 
     movie = Screen('OpenMovie', window, trialVideoFile);
 
@@ -204,7 +206,7 @@ end  % play movie end
     Screen('Flip',window);      
 
     abortit = 0;
-    cursorVPosition = screen_centre; % Half way up the screen. AF use hight, not a fixed  number.
+    cursorVPosition = screen_centre_y; % Half way up the screen. AF use hight, not a fixed  number.
 
 
     keysOfInterest=zeros(1,256);
@@ -287,10 +289,10 @@ try
     abortit = 0;
     buttonDown = false;
 
-    if cursorVPosition > (screen_centre)
-        cursorVPosition = (screen_centre) - (cursorVPosition - (screen_centre));
+    if cursorVPosition > (screen_centre_y)
+        cursorVPosition = (screen_centre_y) - (cursorVPosition - (screen_centre_y));
     else
-        cursorVPosition = (screen_centre) + ((screen_centre) - cursorVPosition);
+        cursorVPosition = (screen_centre_y) + ((screen_centre_y) - cursorVPosition);
     end
     % Put the cursor in the middle third of the screen but above or below the button. 
     %while ( (cursorVPosition == 0) || (cursorVPosition > ((h/2)-100)) && (cursorVPosition < ((h/2)+100)))
@@ -303,7 +305,7 @@ try
     rectangleHeight = 74;
     cursorVOffset = 60;
  
-     if (cursorVPosition > (screen_centre - 100) ) && (cursorVPosition < (screen_centre)+100 )
+     if (cursorVPosition > (screen_centre_y - 100) ) && (cursorVPosition < (screen_centre_y)+100 )
                 Screen('DrawTexture', window, button_down_texture, [], []); 
                 buttonDown = true;
             else
@@ -341,7 +343,7 @@ try
             end   
     
         % Draw pointers to show selection...
-            if (cursorVPosition > (screen_centre - 100) ) && (cursorVPosition < (screen_centre)+100 )
+            if (cursorVPosition > (screen_centre_y - 100) ) && (cursorVPosition < (screen_centre_y)+100 )
                 Screen('DrawTexture', window, button_down_texture, [], []); 
                 buttonDown = true;
             else
@@ -390,6 +392,23 @@ end
  end
 Screen('CloseAll');
 
-loggedData = table(shuffledVideos',movieStartTimes, RPE,ResponseTime, ClickTime,RestDuration);
+
+loggedData = table(shuffledVideos',ef,movieStartTimes, RPE,ResponseTime, ClickTime,RestDuration);
 theName = strcat("Ratings",subject,".csv");
 writetable(loggedData,theName);
+
+
+function effort = nameToEffort( fileName )
+% Effort number from file names.
+ if endsWith(fileName,'8kph.mp4')
+    effort = 1;
+ elseif endsWith(fileName,'10kph.mp4')
+     effort = 2;
+ elseif endsWith(fileName,'12kph.mp4')
+    effort = 3;
+ elseif endsWith(fileName,'14kph.mp4')
+    effort = 4;
+ else
+    effort = -1;
+ end
+end
